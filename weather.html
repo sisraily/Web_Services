@@ -1,0 +1,176 @@
+<!-- Home Page -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <title>Weather Information</title>
+    <!-- Bootstrap core CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+	<style>
+      #thermometer_inner { width: 95%; height: 20%; margin:2.5%; background: red; position:absolute; bottom:10%;}
+      #thermometer_outer {height:400px; position:relative;}
+      #temp_today { color:white; text-align:center; position:relative; top:0%; }
+      body{
+      /*image sourced from https://www.google.com/url?sa=i&url=https%3A%2F%2Fopenweathermap.org%2F&psig=AOvVaw20P3Gfg93XrGNztO2nPhr0&ust=1585803443098000&source=images&cd=vfe&ved=0CAIQjRxqFwoTCMDXlKq4xugCFQAAAAAdAAAAABAD*/
+      background-image: url('./img/weather.png');
+      background-repeat: no-repeat;
+      background-size: cover;
+      }
+      .container{
+      /* margin-top: 2%; */
+      padding:2%;
+      opacity: 0.9;
+      background: #FFFFFF;
+      }
+	</style>
+  </head>
+  <body>
+  	<div class="container">
+		<br>
+		<h1 id="heading" style="text-align:center">Weather Forecast</h1>
+		<hr>
+    <div class="row">
+      <div class="col-6">
+        <div class="row">
+          <div class="col-2">
+            <!-- source for images: https://www.iconfinder.com/iconsets/weather-line-19 -->
+            <img id="image_today" class="img-fluid" src="data.current.weather_icons" alt="Today's Weather Icon">
+          </div>
+          <div class="col-10">
+            <h5>
+              Local Date/Time: <span id="local_time">2020-04-01 11:00AM</span><br>
+              Precipitation: <span id="precip_today">10%</span><br>
+              Humidity: <span id="humidity_today">80%</span><br>
+              Wind Speed: <span id="wind_today">5</span> mph<br>
+              Summary: <span id="summary_today">Summary Info</span>
+            </h5>
+          </div>
+        </div>
+      </div>
+      <div class="col-2">
+
+      </div>
+      <div class="col-4">
+        <div class="card" >
+          <div id="thermometer_outer">
+            <div id="thermometer_inner"><p id="temp_today" class="h3"> 0 F</p></div>
+          </div>
+          <div class="card-body">
+              <h5 class="text-center">Thermometer</h5>
+          </div>
+        </div>
+      </div>
+    </div>
+		<br>
+		<h2 class="h1" style="text-align:center;">5 Day Forecast</h2>
+		<hr>
+		<div class="row" id="5_day_forecast">
+
+		</div>
+		<br>
+	</div>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+	<script>
+    //helper functions
+    var dayOfWeek = "";
+    function formatDate(date, month, year)
+    {
+      month = (month.length < 2) ? ('0' + month) : month;
+      date = (date.length < 2)? ('0' + date) : date;
+      return [year,month,date].join('-');
+    }
+    function getDayofWeek(date, month, year){
+      var week_names = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      dayOfWeek =  week_names[new Date([month,date,year].join('-')).getDay()];
+      return dayOfWeek;
+    }
+    function getFarenheitTemp(temp){
+      return (9*temp/5)+32;
+    }
+    //run when the document object model is ready for javascript code to execute
+		$(document).ready(function() {
+      // Location: Iguazú National Park - Argentina
+			var url ='https://api.weatherstack.com/forecast?access_key=5bc82451636190abd9d7afe6fe9b20b5&query=-25.6905,-54.4573&forecast_days=7'; //Place your weatherstack API Call Here - access_key to be used: 5bc82451636190abd9d7afe6fe9b20b5
+
+			$.ajax({url:url, dataType:"jsonp"}).then(function(data) {
+        
+        console.log(data); // Display the data returned in console
+		    console.log("Location: " + data.location.name + ", " + data.location.country); // Display the location
+        console.log("Current Temp: " + data.current.temperature); // Display current temperature in console
+		    console.log(data.current.weather_icons); // the url of weather icon
+        
+        // Updates the image_today link to the icon that was returned from the api. 
+        document.getElementById("image_today").src = data.current.weather_icons;
+      	
+        // Updates the heading to display the location of todays weather.
+        document.getElementById("heading").innerHTML = "Today's Weather Forcast - " + data.location.name;
+        
+        // Updates the current temperature. Uses the getFarenheitTemp function to convert temperature from celcius to farenheit
+        document.getElementById("temp_today").innerHTML = getFarenheitTemp(data.current.temperature);
+
+        // Modifies the height of the thermometor according to the current temp.
+        document.getElementById("thermometer_inner").style["height"] = getFarenheitTemp(data.current.temperature)+"%";
+        
+        // Today's persciptitation
+        document.getElementById("precip_today").innerHTML = data.current.precip;
+
+        // Displays the current humidity
+        document.getElementById("humidity_today").innerHTML = data.current.humidity +"%";
+  
+        // Displays the current windspeed in mph.
+        document.getElementById("wind_today").innerHTML = (data.current.wind_speed *0.621371).toFixed(2);
+
+        // Updates the summary
+        document.getElementById("summary_today").innerHTML = data.current.weather_descriptions;
+        
+				/* Process the daily forecast for the next 5 days */
+        //helper function - to be used to get the key for each of the 5 days in the future when creating cards for forecasting weather
+        function getKey(i,i2 = 0){
+            var date =new Date();
+            var d = date.getDate() + i;
+            var m = date.getMonth() + 1;
+            var y = date.getFullYear();
+            var key_forecast = formatDate(d.toString(),m.toString(),y.toString()).toString();
+            // Returns the day of the week
+            if (i2 ==1){
+                // The day variable holds calls the getDayofWeek function to convert the date to the current day.
+                var day = getDayofWeek(d,m,y);
+                //console.log(day);
+                return day;
+            }
+            // Returns the forcast
+            else {
+            return data.forecast[key_forecast];
+            };
+        }
+
+          // Interates and adds a card for each of the next five days.
+          for (var i = 0; i < 5; i++) {
+            var forecastcard =""
+          +'<div style="width: 20%;">'
+						+'<div class="card">'
+							+'<div class="card-body">'
+
+               // The second parameter, 1, tells the function to return the day of the week.
+								+'<h5 class="card-title">' + getKey(i,1) + '</h5>'
+								+'<p class="card-text">High: ' + getKey(i).maxtemp + '<br>'
+									+'Low: ' + getKey(i).mintemp +' <br>'
+                  +'Sunrise: ' + getKey(i).astro['sunrise'] + '<br>'
+                  +'Sunset: ' + getKey(i).astro['sunset'] + '</p>'
+							+'</div>'
+						+'</div>'
+					+'</div>';
+            document.getElementById("5_day_forecast").innerHTML += forecastcard;
+            console.log(getKey(i).date);
+          }
+
+
+			})
+		})
+ 	</script>
+</body>
+</html>
